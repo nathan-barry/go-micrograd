@@ -1,37 +1,55 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 func main() {
-	a := New(2.0, "a")
-	b := New(-3.0, "b")
-	c := New(10.0, "c")
-	e := Mul(a, b, "e")
-	d := Add(e, c, "d")
-	f := New(-2.0, "c")
-	L := Mul(d, f, "L")
+	// inputs x1, x2
+	x1 := New(2.0, "x1")
+	x2 := New(0.0, "x2")
 
-	L.DisplayGraph()
+	// weights w1, w2
+	w1 := New(-3.0, "w1")
+	w2 := New(1.0, "w2")
+
+	// bias
+	b := New(6.8813735870195432, "b")
+
+	// x1*w1 + x2*w2 + b
+	w1x1 := Mul(w1, x1, "w1x1")
+	w2x2 := Mul(w2, x2, "w2x2")
+	w1x1w2x2 := Add(w1x1, w2x2, "w1x1w2x2")
+	n := Add(w1x1w2x2, b, "n")
+	o := Tanh(n, "o")
+
+	o.DisplayGraph()
 }
+
+// Value struct
 
 type Value struct {
 	Data  float64
+	Grad  float64
 	prev  []*Value
 	op    string
-	label string
+	Label string
 }
 
 func New(f float64, l string) *Value {
-	return &Value{Data: f, label: l}
+	return &Value{Data: f, Label: l}
 
 }
+
+// Operators
 
 func Add(a, b *Value, l string) *Value {
 	return &Value{
 		Data:  a.Data + b.Data,
 		prev:  []*Value{a, b},
 		op:    "+",
-		label: l,
+		Label: l,
 	}
 }
 
@@ -40,9 +58,20 @@ func Mul(a, b *Value, l string) *Value {
 		Data:  a.Data * b.Data,
 		prev:  []*Value{a, b},
 		op:    "*",
-		label: l,
+		Label: l,
 	}
 }
+
+func Tanh(x *Value, l string) *Value {
+	return &Value{
+		Data:  (math.Exp(2*x.Data) - 1) / (math.Exp(2*x.Data) + 1),
+		prev:  []*Value{x},
+		op:    "tanh",
+		Label: l,
+	}
+}
+
+// Display
 
 func (root *Value) DisplayGraph() {
 	queue := []*Value{root}
@@ -57,7 +86,7 @@ func (root *Value) DisplayGraph() {
 		}
 		queue = newQueue
 		newQueue = []*Value{}
-		fmt.Println("-------------------")
+		fmt.Println("-------------------------------------------------")
 	}
 
 }
@@ -65,11 +94,11 @@ func (root *Value) DisplayGraph() {
 func (v *Value) Display() {
 	prevVal := []string{}
 	for _, pv := range v.prev {
-		prevVal = append(prevVal, pv.label)
+		prevVal = append(prevVal, pv.Label)
 	}
 	if v.op == "" && len(prevVal) == 0 {
-		fmt.Printf("%v: %v\n", v.label, v.Data)
+		fmt.Printf("%v | data %5.2f | grad %5.2f\n", v.Label, v.Data, v.Grad)
 	} else {
-		fmt.Printf("%v: %v { %v %v }\n", v.label, v.Data, v.op, prevVal)
+		fmt.Printf("%v | data %5.2f | grad %5.2f | prev { %v %v }\n", v.Label, v.Data, v.Grad, v.op, prevVal)
 	}
 }
