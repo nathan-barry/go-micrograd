@@ -24,51 +24,98 @@ func main() {
 	n := Add(w1x1w2x2, b, "n")
 	o := Tanh(n, "o")
 
+	o.Backward()
+
 	o.DisplayGraph()
 }
 
 // Value struct
 
 type Value struct {
-	Data  float64
-	Grad  float64
-	prev  []*Value
-	op    string
-	Label string
+	Data     float64
+	Grad     float64
+	backward func()
+	prev     []*Value
+	op       string
+	Label    string
 }
 
 func New(f float64, l string) *Value {
 	return &Value{Data: f, Label: l}
-
 }
 
 // Operators
 
 func Add(a, b *Value, l string) *Value {
-	return &Value{
+	out := &Value{
 		Data:  a.Data + b.Data,
 		prev:  []*Value{a, b},
 		op:    "+",
 		Label: l,
 	}
+	out.backward = func() {
+		a.Grad += out.Grad
+		b.Grad += out.Grad
+	}
+
+	return out
 }
 
 func Mul(a, b *Value, l string) *Value {
-	return &Value{
+	out := &Value{
 		Data:  a.Data * b.Data,
 		prev:  []*Value{a, b},
 		op:    "*",
 		Label: l,
 	}
+	out.backward = func() {
+		a.Grad += b.Data * out.Grad
+		b.Grad += a.Data * out.Grad
+	}
+
+	return out
 }
 
 func Tanh(x *Value, l string) *Value {
-	return &Value{
+	out := &Value{
 		Data:  (math.Exp(2*x.Data) - 1) / (math.Exp(2*x.Data) + 1),
 		prev:  []*Value{x},
 		op:    "tanh",
 		Label: l,
 	}
+	out.backward = func() {
+		x.Grad += (1 - math.Pow(out.Data, 2)) * out.Grad
+	}
+
+	return out
+}
+
+// Backprop
+
+func (v *Value) Backward() {
+	topo := []*Value{}
+	visited := map[*Value]bool{}
+
+	topo = buildTopo(v, topo, visited)
+
+	v.Grad = 1.0
+
+	for i := len(topo) - 1; i >= 0; i-- {
+		if len(topo[i].prev) != 0 {
+			topo[i].backward()
+		}
+	}
+}
+
+func buildTopo(v *Value, topo []*Value, visited map[*Value]bool) []*Value {
+	if !visited[v] {
+		visited[v] = true
+		for _, prev := range v.prev {
+			topo = buildTopo(prev, topo, visited)
+		}
+		topo = append(topo, v)
+	}
+	return topo
 }
 
 // Display
@@ -86,7 +133,7 @@ func (root *Value) DisplayGraph() {
 		}
 		queue = newQueue
 		newQueue = []*Value{}
-		fmt.Println("-------------------------------------------------")
+		fmt.Println("-----------------------------------------------------------")
 	}
 
 }
@@ -97,8 +144,8 @@ func (v *Value) Display() {
 		prevVal = append(prevVal, pv.Label)
 	}
 	if v.op == "" && len(prevVal) == 0 {
-		fmt.Printf("%v | data %5.2f | grad %5.2f\n", v.Label, v.Data, v.Grad)
+		fmt.Printf("%v | data %6.4f | grad %6.4f\n", v.Label, v.Data, v.Grad)
 	} else {
-		fmt.Printf("%v | data %5.2f | grad %5.2f | prev { %v %v }\n", v.Label, v.Data, v.Grad, v.op, prevVal)
+		fmt.Printf("%v | data %6.4f | grad %6.4f | prev { %v %v }\n", v.Label, v.Data, v.Grad, v.op, prevVal)
 	}
 }
