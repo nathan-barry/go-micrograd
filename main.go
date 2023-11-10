@@ -22,7 +22,11 @@ func main() {
 	w2x2 := Mul(w2, x2, "w2x2")
 	w1x1w2x2 := Add(w1x1, w2x2, "w1x1w2x2")
 	n := Add(w1x1w2x2, b, "n")
+
+	// Tanh
 	o := Tanh(n, "o")
+	// e := Exp(Mul(New(2, ""), n, ""), "e")
+	// o := Div(Sub(e, New(1, ""), ""), Add(e, New(1, ""), ""), "o")
 
 	o.Backward()
 
@@ -61,6 +65,14 @@ func Add(a, b *Value, l string) *Value {
 	return out
 }
 
+func Neg(x *Value, l string) *Value {
+	return Mul(x, New(-1, ""), l)
+}
+
+func Sub(a, b *Value, l string) *Value {
+	return Add(a, Neg(b, ""), l)
+}
+
 func Mul(a, b *Value, l string) *Value {
 	out := &Value{
 		Data:  a.Data * b.Data,
@@ -76,6 +88,25 @@ func Mul(a, b *Value, l string) *Value {
 	return out
 }
 
+func Div(a, b *Value, l string) *Value {
+	return Mul(a, Pow(b, New(-1, ""), ""), l)
+}
+
+func Pow(a, b *Value, l string) *Value {
+	out := &Value{
+		Data:  math.Pow(a.Data, b.Data),
+		prev:  []*Value{a, b},
+		op:    "Pow",
+		Label: l,
+	}
+	out.backward = func() {
+		a.Grad += (b.Data * math.Pow(a.Data, b.Data-1)) * out.Grad
+		b.Grad += (a.Data * math.Pow(b.Data, a.Data-1)) * out.Grad
+	}
+
+	return out
+}
+
 func Tanh(x *Value, l string) *Value {
 	out := &Value{
 		Data:  (math.Exp(2*x.Data) - 1) / (math.Exp(2*x.Data) + 1),
@@ -85,6 +116,20 @@ func Tanh(x *Value, l string) *Value {
 	}
 	out.backward = func() {
 		x.Grad += (1 - math.Pow(out.Data, 2)) * out.Grad
+	}
+
+	return out
+}
+
+func Exp(x *Value, l string) *Value {
+	out := &Value{
+		Data:  math.Exp(x.Data),
+		prev:  []*Value{x},
+		op:    "exp",
+		Label: l,
+	}
+	out.backward = func() {
+		x.Grad += out.Data * out.Grad
 	}
 
 	return out
