@@ -4,6 +4,8 @@ import (
 	"math/rand"
 )
 
+// Neuron
+
 type Neuron struct {
 	Weight []*Value
 	Bias   *Value
@@ -37,6 +39,8 @@ func (n *Neuron) Forward(x []*Value) *Value {
 	return out
 }
 
+// Layer
+
 type Layer struct {
 	Neurons []*Neuron
 }
@@ -58,6 +62,8 @@ func (l *Layer) Forward(x []*Value) []*Value {
 
 	return out
 }
+
+// MLP
 
 type MLP struct {
 	Sizes  []int
@@ -81,4 +87,18 @@ func (mlp *MLP) Forward(x []*Value) []*Value {
 	}
 
 	return x
+}
+
+// Loss
+
+func MSE(yPred, y []*Value) *Value {
+	if len(y) != len(yPred) {
+		panic("y and yPred different sizes")
+	}
+	sum := New(0)
+	for i := 0; i < len(y); i++ {
+		sum = Add(sum, Pow(Sub(yPred[i], y[i]), New(2)))
+	}
+
+	return sum
 }

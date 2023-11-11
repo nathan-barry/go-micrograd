@@ -1,7 +1,7 @@
 package main
 
 func main() {
-	example1()
+	example3()
 }
 
 func example1() {
@@ -39,4 +39,25 @@ func example2() {
 	out[0].Backward()
 
 	out[0].DisplayGraph()
+}
+
+func example3() {
+	n := NewMLP(3, []int{4, 4, 1})
+
+	xs := [][]*Value{
+		{New(2), New(3), New(-1)},
+		{New(3), New(-1), New(0.5)},
+		{New(0.5), New(1), New(1)},
+		{New(1), New(1), New(-1)},
+	}
+	ys := []*Value{New(1), New(-1), New(-1), New(1)}
+
+	ypred := make([]*Value, 4)
+	for i, x := range xs {
+		ypred[i] = n.Forward(x)[0]
+	}
+
+	loss := MSE(ypred, ys)
+	loss.Backward()
+	loss.DisplayGraph()
 }
