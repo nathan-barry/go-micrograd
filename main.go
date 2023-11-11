@@ -6,6 +6,7 @@ func main() {
 	example3()
 }
 
+// Example of small computation graph
 func example1() {
 	// inputs x1, x2
 	x1 := New(2.0)
@@ -34,6 +35,7 @@ func example1() {
 	o.DisplayGraph()
 }
 
+// Example showing a large computation graph
 func example2() {
 	x := []*Value{New(2), New(3), New(-1)}
 	n := NewMLP(3, []int{4, 4, 1})
@@ -43,6 +45,7 @@ func example2() {
 	out[0].DisplayGraph()
 }
 
+// Example of full training loop of a neural network
 func example3() {
 	n := NewMLP(3, []int{4, 4, 1})
 
