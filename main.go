@@ -80,3 +80,26 @@ func example3() {
 		fmt.Printf("Iter: %2v, Loss: %v\n", k, loss.Data)
 	}
 }
+
+// Example of training a simple Double(x) model
+func example4() {
+	x := New(2)
+	w := New(0.4) // pretend random init
+	y := New(4)
+
+	for k := 0; k < 10; k++ {
+
+		// forward pass
+		ypred := Mul(w, x)
+		loss := Pow(Sub(ypred, y), New(2))
+
+		// backwards pass
+		w.Grad = 0 // zero previous gradients
+		loss.Backward()
+
+		// update weights
+		w.Data += -0.1 * w.Grad
+
+		fmt.Printf("Iter: %2v, Loss: %.4v, w: %.4v\n", k, loss.Data, w.Data)
+	}
+}
