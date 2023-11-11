@@ -39,6 +39,10 @@ func (n *Neuron) Forward(x []*Value) *Value {
 	return out
 }
 
+func (n *Neuron) Parameters() []*Value {
+	return append(n.Weight, n.Bias)
+}
+
 // Layer
 
 type Layer struct {
@@ -61,6 +65,14 @@ func (l *Layer) Forward(x []*Value) []*Value {
 	}
 
 	return out
+}
+
+func (l *Layer) Parameters() []*Value {
+	res := []*Value{}
+	for _, n := range l.Neurons {
+		res = append(res, n.Parameters()...)
+	}
+	return res
 }
 
 // MLP
@@ -87,6 +99,14 @@ func (mlp *MLP) Forward(x []*Value) []*Value {
 	}
 
 	return x
+}
+
+func (mlp *MLP) Parameters() []*Value {
+	res := []*Value{}
+	for _, l := range mlp.Layers {
+		res = append(res, l.Parameters()...)
+	}
+	return res
 }
 
 // Loss

@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func main() {
 	example3()
 }
@@ -52,12 +54,26 @@ func example3() {
 	}
 	ys := []*Value{New(1), New(-1), New(-1), New(1)}
 
-	ypred := make([]*Value, 4)
-	for i, x := range xs {
-		ypred[i] = n.Forward(x)[0]
-	}
+	for k := 0; k < 50; k++ {
 
-	loss := MSE(ypred, ys)
-	loss.Backward()
-	loss.DisplayGraph()
+		// forward pass
+		ypred := make([]*Value, 4)
+		for i, x := range xs {
+			ypred[i] = n.Forward(x)[0]
+		}
+		loss := MSE(ypred, ys)
+
+		// backwards pass
+		for _, p := range n.Parameters() {
+			p.Grad = 0
+		}
+		loss.Backward()
+
+		// update weights
+		for _, p := range n.Parameters() {
+			p.Data += -0.1 * p.Grad
+		}
+
+		fmt.Printf("Iter: %2v, Loss: %v\n", k, loss.Data)
+	}
 }
