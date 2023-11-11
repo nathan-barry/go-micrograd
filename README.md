@@ -43,6 +43,47 @@ func main() {
 
 The `main.go` file has various examples training a neural network, specifically `func example3()`. Add this into `main()` to run the example.
 
+```go
+func example3()
+    // Initialize the MultiLayer Perceptron
+	n := NewMLP(3, []int{4, 4, 1})
+
+    
+    // Create the input dataset and correct outputs
+	xs := [][]*Value{
+		{New(2), New(3), New(-1)},
+		{New(3), New(-1), New(0.5)},
+		{New(0.5), New(1), New(1)},
+		{New(1), New(1), New(-1)},
+	}
+	ys := []*Value{New(1), New(-1), New(-1), New(1)}
+
+    // Training loop
+	for k := 0; k < 50; k++ {
+
+		// forward pass
+		ypred := make([]*Value, 4)
+		for i, x := range xs {
+			ypred[i] = n.Forward(x)[0]
+		}
+		loss := MSE(ypred, ys)
+
+		// backwards pass
+		for _, p := range n.Parameters() {
+			p.Grad = 0
+		}
+		loss.Backward()
+
+		// update weights
+		for _, p := range n.Parameters() {
+			p.Data += -0.1 * p.Grad
+		}
+
+		fmt.Printf("Iter: %2v, Loss: %v\n", k, loss.Data)
+	}
+}
+```
+
 ### License
 
 MIT
