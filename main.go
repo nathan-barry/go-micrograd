@@ -1,9 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func main() {
-	example3()
+	benchmark()
 }
 
 // Example of small computation graph
@@ -102,4 +105,34 @@ func example4() {
 
 		fmt.Printf("Iter: %2v, Loss: %.4v, w: %.4v\n", k, loss.Data, w.Data)
 	}
+}
+
+// Benchmark time training Double(x) function
+func benchmark() {
+	t := time.Now()
+
+	for i := 0; i < 100_000; i++ {
+		x := New(2)
+		w := New(0.4) // pretend random init
+		y := New(4)
+
+		for k := 0; k < 10; k++ {
+
+			// forward pass
+			ypred := Mul(w, x)
+			loss := Pow(Sub(ypred, y), New(2))
+
+			// backwards pass
+			w.Grad = 0 // zero previous gradients
+			loss.Backward()
+
+			// update weights
+			w.Data += -0.1 * w.Grad
+		}
+
+		if i%10_000 == 0 {
+			fmt.Println("At iteration:", i)
+		}
+	}
+	fmt.Println("Time taken:", time.Since(t).Seconds())
 }
