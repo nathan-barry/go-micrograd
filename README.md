@@ -4,6 +4,9 @@
 
 This is a Go implementation of Andre Karpathy's micrograd library. Implements backpropagation (reverse-mode autodiff) over a dynamically built DAG and a small neural networks library on top of it with a PyTorch-like API (as close as you can get to it in Go). Both are tiny, with about 100-200 lines of code each. The DAG only operates over scalar values, so e.g. we chop up each neuron into all of its individual tiny adds and multiplies. However, this is enough to build up entire deep neural nets doing binary classification, as the `main.go` file shows. Potentially useful for educational purposes.
 
+## Running it
+To run the main example, enter the command `go run .`
+
 ### Example usage
 ```go
 package main
